@@ -1101,7 +1101,7 @@ abstract class Comix :
         private const val READER_TIMEOUT_SECONDS = 240L
         private const val READER_FIRST_PAGE_SECONDS = 45L
         private const val READER_PAGE_SECONDS = 120L
-        private const val READER_POLL_MS = 250L
+        private const val READER_POLL_MS = 100L
         private const val MAX_CAPTURES = 8
         private const val MAX_RUNNING_WALKS = 3
         private const val MAX_CHAPTER_WALKS = 3
