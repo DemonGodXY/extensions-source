@@ -205,7 +205,7 @@ abstract class Comix :
                     if (window[payloadKey]) return window[payloadKey];
                     if (!window.__comixA1BrowseStarted) {
                         window.__comixA1BrowseStarted = true;
-                        window.__comixHarvestOptions = { timeoutMs: 60000, settleMs: 4000 };
+                        window.__comixHarvestOptions = { timeoutMs: 30000, settleMs: 2000 };
                         ${asset("harvest_browse.js")}
                         window.__comixHarvestPromise.then(result => {
                             try {
@@ -508,8 +508,8 @@ abstract class Comix :
                 if (window.__comixA1ChaptersStarted) return;
                 window.__comixA1ChaptersStarted = true;
                 window.__comixHarvestOptions = {
-                    timeoutMs: 60000,
-                    settleMs: 6000,
+                    timeoutMs: 30000,
+                    settleMs: 3000,
                     maxRounds: 1000,
                     stopAtIds: ${knownIds.joinToString(",", "[", "]")}
                 };
