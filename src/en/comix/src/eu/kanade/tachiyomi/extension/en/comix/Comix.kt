@@ -1103,7 +1103,7 @@ abstract class Comix :
         private const val READER_PAGE_SECONDS = 120L
         private const val READER_POLL_MS = 100L
         private const val MAX_CAPTURES = 8
-        private const val MAX_RUNNING_WALKS = 3
+        private const val MAX_RUNNING_WALKS = 5
         private const val MAX_CHAPTER_WALKS = 3
         private val CHAPTER_WALK_WINDOW_NANOS = 10.minutes.inWholeNanoseconds
         private const val CAPTURE_IDLE_CHECK_MS = 5000L
