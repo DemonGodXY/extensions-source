@@ -1092,7 +1092,7 @@ abstract class Comix :
         private const val WEBVIEW_TIMEOUT_SECONDS = 60L
         private const val DATA_REQUEST_WAIT_SECONDS = 30L
         private val RECENT_QUERIES_TTL_NANOS = 120.seconds.inWholeNanoseconds
-        private const val SCRIPT_RETRY_INTERVAL_MS = 100L
+        private const val SCRIPT_RETRY_INTERVAL_MS = 50L
         private const val MAX_CHAPTER_PAGES = 1000
         private val chapterListPacer = RequestPacer(minGapMs = 800, maxGapMs = 1600)
         private const val OFFICIAL_GROUP_ID = 10702
