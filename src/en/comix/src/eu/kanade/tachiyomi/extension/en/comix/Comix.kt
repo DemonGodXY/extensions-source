@@ -136,9 +136,9 @@ abstract class Comix :
             }
             response
         }
-        .rateLimit(2) { it.host == baseUrlHost }
-        .rateLimit(2) { it.isPageImage() }
-        .rateLimit(5)
+        .rateLimit(4) { it.host == baseUrlHost }
+        .rateLimit(4) { it.isPageImage() }
+        .rateLimit(8)
 
     private val baseUrlHost get() = baseUrl.toHttpUrl().host
 
