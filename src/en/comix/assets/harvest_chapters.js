@@ -85,7 +85,7 @@
     const isChapterRow = (anchor) => !!anchor.closest("li");
 
     const OPTIONS = Object.assign(
-        { timeoutMs: 45000, settleMs: 5000, pollMs: 100, maxRounds: 40, stopAtIds: [] },
+        { timeoutMs: 15000, settleMs: 900, pollMs: 75, maxRounds: 24, stopAtIds: [] },
         window.__comixHarvestOptions || {});
     const stopAt = new Set((OPTIONS.stopAtIds || []).map(Number));
 

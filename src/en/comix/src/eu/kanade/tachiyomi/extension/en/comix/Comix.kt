@@ -508,9 +508,10 @@ abstract class Comix :
                 if (window.__comixA1ChaptersStarted) return;
                 window.__comixA1ChaptersStarted = true;
                 window.__comixHarvestOptions = {
-                    timeoutMs: 30000,
-                    settleMs: 3000,
-                    maxRounds: 1000,
+                    timeoutMs: 15000,
+                    settleMs: 900,
+                    pollMs: 75,
+                    maxRounds: 24,
                     stopAtIds: ${knownIds.joinToString(",", "[", "]")}
                 };
                 window.__comixNativeTap = function (x, y) { try { window.$touchName([x, y]); } catch (e) {} };
@@ -1094,7 +1095,7 @@ abstract class Comix :
         private val RECENT_QUERIES_TTL_NANOS = 120.seconds.inWholeNanoseconds
         private const val SCRIPT_RETRY_INTERVAL_MS = 50L
         private const val MAX_CHAPTER_PAGES = 1000
-        private val chapterListPacer = RequestPacer(minGapMs = 800, maxGapMs = 1600)
+        private val chapterListPacer = RequestPacer(minGapMs = 200, maxGapMs = 600)
         private const val OFFICIAL_GROUP_ID = 10702
         private const val CHAPTER_DATA_VERSION = 1
         private const val TAG_ID_CACHE_SIZE = 50
