@@ -85,7 +85,7 @@
     const isChapterRow = (anchor) => !!anchor.closest("li");
 
     const OPTIONS = Object.assign(
-        { timeoutMs: 15000, settleMs: 900, pollMs: 75, maxRounds: 24, stopAtIds: [] },
+        { timeoutMs: 45000, settleMs: 5000, pollMs: 100, maxRounds: 1000, stopAtIds: [] },
         window.__comixHarvestOptions || {});
     const stopAt = new Set((OPTIONS.stopAtIds || []).map(Number));
 
@@ -252,11 +252,9 @@
             const inView = r0.width > 0 && r0.top >= 0 && r0.bottom <= window.innerHeight &&
                 r0.left >= 0 && r0.right <= window.innerWidth;
             if (!inView) {
-                try { el.scrollIntoView({ block: "center" }); } catch (e) {}
-                await sleep(350);
-            } else {
-                await sleep(60);
+                try { el.scrollIntoView({ block: "center", behavior: "instant" }); } catch (e) {}
             }
+            await sleep(16);
             let tapped = false;
             if (typeof window.__comixNativeTap === "function") {
                 const r = el.getBoundingClientRect();

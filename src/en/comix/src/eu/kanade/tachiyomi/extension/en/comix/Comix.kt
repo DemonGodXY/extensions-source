@@ -508,10 +508,10 @@ abstract class Comix :
                 if (window.__comixA1ChaptersStarted) return;
                 window.__comixA1ChaptersStarted = true;
                 window.__comixHarvestOptions = {
-                    timeoutMs: 15000,
-                    settleMs: 900,
+                    timeoutMs: 30000,
+                    settleMs: 3000,
                     pollMs: 75,
-                    maxRounds: 24,
+                    maxRounds: 1000,
                     stopAtIds: ${knownIds.joinToString(",", "[", "]")}
                 };
                 window.__comixNativeTap = function (x, y) { try { window.$touchName([x, y]); } catch (e) {} };
@@ -923,7 +923,7 @@ abstract class Comix :
             summary = "Enabled: Uses fewer requests, but may miss newly added older chapters " +
                 "(e.g. chapter 5.5 when the latest known chapter is 150).\n\n" +
                 "Disabled: Finds older chapter additions, but fetching large chapter lists is slower."
-            setDefaultValue(true)
+            setDefaultValue(false)
         }.let(screen::addPreference)
 
         ListPreference(screen.context).apply {
@@ -1031,7 +1031,7 @@ abstract class Comix :
 
     private fun SharedPreferences.deduplicateChapters() = getBoolean(DEDUPLICATE_CHAPTERS, false)
 
-    private fun SharedPreferences.fetchChaptersUntilKnown() = getBoolean(PREF_FETCH_CHAPTERS_UNTIL_KNOWN, true)
+    private fun SharedPreferences.fetchChaptersUntilKnown() = getBoolean(PREF_FETCH_CHAPTERS_UNTIL_KNOWN, false)
 
     private fun SharedPreferences.scanlatorBlacklist(): Set<String> = getString(PREF_SCANLATOR_BLACKLIST, "")
         ?.split(",")
@@ -1081,7 +1081,7 @@ abstract class Comix :
         private const val PREF_BLOCKED_GENRES = "pref_blocked_genres"
         private const val LEGACY_HIDE_NSFW_PREF = "nsfw_pref"
         private const val DEDUPLICATE_CHAPTERS = "pref_deduplicate_chapters"
-        private const val PREF_FETCH_CHAPTERS_UNTIL_KNOWN = "pref_fetch_chapters_until_known"
+        private const val PREF_FETCH_CHAPTERS_UNTIL_KNOWN = "pref_fetch_chapters_until_known_v2"
         private const val PREF_SCANLATOR_BLACKLIST = "pref_scanlator_blacklist"
         private const val ALTERNATIVE_NAMES_IN_DESCRIPTION = "pref_alt_names_in_description"
         private const val PREF_SHOW_EXTRA_INFO = "pref_show_extra_info"
