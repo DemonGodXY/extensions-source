@@ -111,6 +111,16 @@ abstract class Comix :
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<String>>?) = size > TAG_ID_CACHE_SIZE
     }
 
+    private val chapterListCache = object : LinkedHashMap<String, CachedChapterList>(
+        CHAPTER_LIST_CACHE_SIZE + 1,
+        0.75f,
+        true,
+    ) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedChapterList>?) = size > CHAPTER_LIST_CACHE_SIZE
+    }
+
+    private class CachedChapterList(val fetchedAtNanos: Long, val chapterList: ChapterList)
+
     override fun OkHttpClient.Builder.configureClient() = addInterceptor(Descrambler.interceptor)
         .addInterceptor { chain ->
             val request = chain.request()
@@ -379,7 +389,11 @@ abstract class Comix :
             }.toMap()
             val mangaSlug = manga.url.removePrefix("/")
             val fetchStartedAt = System.currentTimeMillis()
-            val chapterList = getWebViewChapterList(manga, knownIds)
+            val chapterUrl = getMangaUrl(manga)
+            val cachedChapterList = getCachedChapterList(chapterUrl, knownIds)
+            val chapterList = cachedChapterList ?: getWebViewChapterList(manga, knownIds).also {
+                cacheChapterList(chapterUrl, knownIds, it)
+            }
             // The chapter page carried the detail too, so the manga comes from this same navigation
             walkedQueries = chapterList.queries?.also {
                 cachedQueries = it
@@ -549,6 +563,26 @@ abstract class Comix :
             """.trimIndent()
         }
         return payload.parseAs<ChapterList>()
+    }
+
+    private fun getCachedChapterList(url: String, knownIds: List<Int>): ChapterList? {
+        if (knownIds.isNotEmpty()) return null
+        return synchronized(chapterListCache) {
+            val cached = chapterListCache[url] ?: return@synchronized null
+            if (System.nanoTime() - cached.fetchedAtNanos > CHAPTER_LIST_CACHE_TTL_NANOS) {
+                chapterListCache.remove(url)
+                null
+            } else {
+                cached.chapterList
+            }
+        }
+    }
+
+    private fun cacheChapterList(url: String, knownIds: List<Int>, chapterList: ChapterList) {
+        if (knownIds.isNotEmpty() || !chapterList.complete) return
+        synchronized(chapterListCache) {
+            chapterListCache[url] = CachedChapterList(System.nanoTime(), chapterList)
+        }
     }
 
     private fun selectChapters(
@@ -1095,7 +1129,9 @@ abstract class Comix :
         private val RECENT_QUERIES_TTL_NANOS = 120.seconds.inWholeNanoseconds
         private const val SCRIPT_RETRY_INTERVAL_MS = 50L
         private const val MAX_CHAPTER_PAGES = 1000
-        private val chapterListPacer = RequestPacer(minGapMs = 200, maxGapMs = 600)
+        private val chapterListPacer = RequestPacer(minGapMs = 150, maxGapMs = 450)
+        private const val CHAPTER_LIST_CACHE_SIZE = 4
+        private val CHAPTER_LIST_CACHE_TTL_NANOS = 60.seconds.inWholeNanoseconds
         private const val OFFICIAL_GROUP_ID = 10702
         private const val CHAPTER_DATA_VERSION = 1
         private const val TAG_ID_CACHE_SIZE = 50

@@ -2,16 +2,6 @@
     "use strict";
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    const waitFor = async (check, { timeoutMs = 30000, intervalMs = 250 } = {}) => {
-        const deadline = Date.now() + timeoutMs;
-        for (;;) {
-            let value = null;
-            try { value = check(); } catch (e) { value = null; }
-            if (value) return value;
-            if (Date.now() >= deadline) return null;
-            await sleep(Math.min(intervalMs, Math.max(1, deadline - Date.now())));
-        }
-    };
     const readInitialData = (doc) => {
         const candidates = [];
         const byId = doc.querySelector("script#initial-data");
@@ -194,9 +184,14 @@
         const mangaId = data && hid ? anchoredNumber(data, hid) : null;
 
         const byId = new Map();
-        const absorb = () => {
-            let added = 0;
-            for (const anchor of Array.from(document.querySelectorAll("a[href]"))) {
+        const absorb = (root = document) => {
+            const anchors = root === document
+                ? Array.from(document.querySelectorAll("a[href]"))
+                : [
+                    ...(root.matches && root.matches("a[href]") ? [root] : []),
+                    ...Array.from(root.querySelectorAll ? root.querySelectorAll("a[href]") : []),
+                ];
+            for (const anchor of anchors) {
                 const path = pathOf(anchor.getAttribute("href") || "");
                 const chapter = parseChapterPath(path);
                 if (!chapter || !isChapterRow(anchor)) continue;
@@ -212,14 +207,52 @@
                     votes: votesOf(row),
                     group: groupOf(row),
                 });
-                added++;
             }
-            return added;
         };
+        const mutationWaiters = new Set();
+        const observer = new MutationObserver((records) => {
+            for (const record of records) {
+                if (record.type === "attributes") {
+                    absorb(record.target);
+                } else if (record.type === "characterData") {
+                    const row = record.target.parentElement && record.target.parentElement.closest("li");
+                    if (row) absorb(row);
+                } else {
+                    for (const node of record.addedNodes) {
+                        if (node.nodeType === 1) absorb(node);
+                    }
+                }
+            }
+            for (const waiter of mutationWaiters) waiter();
+        });
+        observer.observe(document.documentElement || document, {
+            attributes: true,
+            attributeFilter: ["href"],
+            childList: true,
+            characterData: true,
+            subtree: true,
+        });
+        const waitForGrowth = (before, timeoutMs) => new Promise((resolve) => {
+            let timer;
+            const finish = (grew) => {
+                clearTimeout(timer);
+                mutationWaiters.delete(check);
+                resolve(grew);
+            };
+            const check = () => {
+                if (byId.size > before) finish(true);
+            };
+            mutationWaiters.add(check);
+            timer = setTimeout(() => {
+                absorb(document);
+                finish(byId.size > before);
+            }, timeoutMs);
+            check();
+        });
         const reachedKnown = () => Array.from(byId.keys()).some((id) => stopAt.has(id));
 
-        await waitFor(() => (absorb(), byId.size > 0) || null,
-            { timeoutMs: OPTIONS.timeoutMs, intervalMs: OPTIONS.pollMs });
+        absorb(document);
+        await waitForGrowth(0, OPTIONS.timeoutMs);
 
         const sectionRoot = () => {
             const first = Array.from(document.querySelectorAll("a[href]"))
@@ -298,17 +331,14 @@
             };
             const usedTap = await activate(control, entry);
             entry.method = usedTap ? "tap" : "click";
-            let grew = await waitFor(() => (absorb(), byId.size > before) || null,
-                { timeoutMs: OPTIONS.settleMs, intervalMs: OPTIONS.pollMs });
+            let grew = await waitForGrowth(before, OPTIONS.settleMs);
             if (!grew && !reachedKnown()) {
                 await activate(control, null);
-                grew = await waitFor(() => (absorb(), byId.size > before) || null,
-                    { timeoutMs: OPTIONS.settleMs, intervalMs: OPTIONS.pollMs });
+                grew = await waitForGrowth(before, OPTIONS.settleMs);
             }
             if (!grew && !reachedKnown()) {
                 try { control.click(); } catch (e) {}
-                grew = await waitFor(() => (absorb(), byId.size > before) || null,
-                    { timeoutMs: OPTIONS.settleMs, intervalMs: OPTIONS.pollMs });
+                grew = await waitForGrowth(before, OPTIONS.settleMs);
             }
             entry.after = byId.size;
             entry.url = location.href;
@@ -330,6 +360,7 @@
         if (total != null && byId.size < total && !stoppedAtKnown) complete = false;
         const chapters = Array.from(byId.values())
             .sort((a, b) => (b.number - a.number) || (b.id - a.id));
+        observer.disconnect();
         return {
             page: "manga",
             hid,
