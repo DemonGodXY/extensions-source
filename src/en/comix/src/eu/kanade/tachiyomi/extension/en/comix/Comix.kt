@@ -1089,7 +1089,7 @@ abstract class Comix :
         private const val PREF_SOLVE_CAPTCHA = "pref_solve_captcha"
 
         private const val DEFAULT_CONTENT_RATING = "suggestive"
-        private const val WEBVIEW_TIMEOUT_SECONDS = 120L
+        private const val WEBVIEW_TIMEOUT_SECONDS = 60L
         private const val DATA_REQUEST_WAIT_SECONDS = 30L
         private val RECENT_QUERIES_TTL_NANOS = 120.seconds.inWholeNanoseconds
         private const val SCRIPT_RETRY_INTERVAL_MS = 100L
@@ -1098,9 +1098,9 @@ abstract class Comix :
         private const val OFFICIAL_GROUP_ID = 10702
         private const val CHAPTER_DATA_VERSION = 1
         private const val TAG_ID_CACHE_SIZE = 50
-        private const val READER_TIMEOUT_SECONDS = 240L
-        private const val READER_FIRST_PAGE_SECONDS = 45L
-        private const val READER_PAGE_SECONDS = 120L
+        private const val READER_TIMEOUT_SECONDS = 120L
+        private const val READER_FIRST_PAGE_SECONDS = 22L
+        private const val READER_PAGE_SECONDS = 60L
         private const val READER_POLL_MS = 100L
         private const val MAX_CAPTURES = 8
         private const val MAX_RUNNING_WALKS = 5
